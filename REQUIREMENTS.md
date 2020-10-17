@@ -24,7 +24,7 @@ Effect of the number of hidden layers in the network and their number. Explore d
 Effect of the error measure at the network output on the learning efficiency. Look for two measures of error for classification and two for regression.
 The results and conclusions must be described in the project report.
 
-#### 2.2 Part two (5 points)
+### 2.2 Part two (5 points)
 Using the implementation created in the first part, by modifying only the network parameters (the number of layers, neurons, activation function, etc.), but not extending the implementation with new functionalities, teach the network to recognize digits from the MNIST set. You can modify the program code to optimize it. A technique that will definitely improve performance will be the departure from the object-oriented representation of neurons in favor of arrays of values ​​in each of the layers.
 
 The assessment from this stage depends on the effectiveness of the network on the test set:
