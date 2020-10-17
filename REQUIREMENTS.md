@@ -29,13 +29,14 @@ Using the implementation created in the first part, by modifying only the networ
 
 The assessment from this stage depends on the effectiveness of the network on the test set:
 
-Score points> =
-5 97%
-4 94%
-3 90%
-2 80%
-1 65%
-0 0%
+|Score|points|
+|-----|------|
+|5    |   97%|
+|4    |   94%|
+|3    |   90%|
+|2    |   80%|
+|1    |   65%|
+|0    |    0%|
 
 The MNIST set is available here: http://yann.lecun.com/exdb/mnist/ In the process of learning the network, we ONLY use the set marked as training, and we use the test set only to assess the quality of the already learned network.
 
