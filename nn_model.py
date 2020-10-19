@@ -7,7 +7,7 @@ def ReLU0prim(x:np.float64):
     return max(np.float64(x>=-1 and x<=1),0.01)
 
 class nn_model:
-    def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.3,change_m_ratio=0.2):
+    def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.2):
 
 
         self.num_of_layers=len(layersizes)
