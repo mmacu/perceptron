@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -15,6 +16,7 @@ class Visualization:
         G = nx.Graph()
         k=0
         edges=[]
+        edge_values=[]
         k0=0 # first neuron number in the layer
         for i in range(self.model.num_of_layers):
             k0=k
@@ -26,6 +28,7 @@ class Visualization:
                 if i>0:
                     for p_j in range(self.model.layers[i-1]):
                         edges.append([k0-self.model.layers[i-1]+p_j,k])
+                        edge_values.append(self.model.weights[i-1][j,p_j])
                 k += 1
 
 
@@ -35,9 +38,16 @@ class Visualization:
                                node_color='b',
                                node_size=50,
                                alpha=0.8)
+        norm = matplotlib.colors.Normalize(vmin=min(edge_values), vmax=max(edge_values))
+        cmap=plt.get_cmap('viridis')
         nx.draw_networkx_edges(G, pos,
                                edgelist=edges,
-                               width=np.random.random()*10, alpha=0.8, edge_color='r')
+                               width=5, alpha=0.8, edge_color=edge_values,
+                               edge_cmap=cmap)
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        plt.colorbar(sm)
+
 
         """       i = 0
         for layer in self.model.layers:
@@ -53,5 +63,6 @@ class Visualization:
                                    width=4, alpha=0.5, edge_color=self.colors[i % len(self.colors)])
             i += 1
         nx.draw(G, pos, with_labels=True, node_size=2, font_size=10, width=1.2)"""
+
         plt.suptitle('NN graph')
         plt.show()  # display
