@@ -1,10 +1,10 @@
 import numpy as np
 
 def ReLU0(x:np.float64):
-    return min(max(-1,x),1)
+    return np.float64(min(max(-1.0,x),1.0))
 
 def ReLU0prim(x:np.float64):
-    return max(np.float64(x>-1 and x<1),0.0)
+    return np.float64(x>-1 and x<1)
 
 def Sigm(x:np.float64):
     return 1.0/(1.0+np.exp(-x))
@@ -19,11 +19,11 @@ def Sigmprim2(x:np.float64):
     if (x<1 and x>-1):
         return (1.0+x)*(1.0-x)
     else:
-        return 0
+        return 0.0
 
 class nn_model:
     def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.1,
-                 with_bias=True):
+                 with_bias=True,bias=1.0):
 
 
         self.num_of_layers=len(layersizes)
@@ -42,7 +42,7 @@ class nn_model:
         self.act_fprim=np.vectorize(act_fprim)
         self.learn_ratio=learn_ratio
         self.with_bias=with_bias
-        self.bias=0.5
+        self.bias=bias
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
@@ -107,5 +107,19 @@ class nn_model:
         return self.output_denormalise(self.actvalues[self.num_of_layers-1])
 
 
-
+    def fit(self,train_data,epochs=5):
+        learning_error = np.zeros(epochs * len(train_data))
+        input_size=self.layers[0]-int(self.with_bias)
+        output_size=self.layers[-1]
+        data_size=len(train_data[0])
+        input = np.zeros(input_size)
+        expected = np.zeros(output_size)
+        for i in range(epochs * len(train_data)):
+            k = np.random.randint(len(train_data))
+            input = train_data[k][0:input_size]
+            result = self.evaluate(input)
+            expected = train_data[k][(data_size-output_size):data_size]
+            self.backprop(input, result, expected)
+            learning_error[i] = np.linalg.norm(result - expected)
+        return learning_error
 
