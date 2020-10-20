@@ -1,29 +1,37 @@
 import numpy as np
 
+from nn_visualisation import Visualization
+
+
 def ReLU0(x:np.float64):
-    return np.float64(min(max(-1.0,x),1.0))
+    y=np.float64(min(max(-1.0,x),1.0))
+    return y
 
 def ReLU0prim(x:np.float64):
-    return np.float64(x>-1 and x<1)
+    if x>-1.0 and x<1:
+        return 1.0
+    else:
+        return 0.01
+
 
 def Sigm(x:np.float64):
-    return 1.0/(1.0+np.exp(-x))
+    return 1.0/(1.0+np.exp(-x*2.0))
 
 def Sigm2(x:np.float64):
-    return (2.0/(1.0+np.exp(-x)))-1.0
+    return (2.0/(1.0+np.exp(-2.0*x)))-1.0
 
 def Sigmprim(x:np.float64):
-    return np.float64(x*(1.0-x))
+    return np.float64(2.0*x*(1.0-x))
 
 def Sigmprim2(x:np.float64):
     if (x<1 and x>-1):
-        return (1.0+x)*(1.0-x)
+        return 2.0*(1.0+x)*(1.0-x)
     else:
         return 0.0
 
 class nn_model:
-    def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.1,
-                 with_bias=True,bias=0.5):
+    def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.5,
+                 with_bias=True,bias=0.5,with_noise=True):
 
 
         self.num_of_layers=len(layersizes)
@@ -43,10 +51,12 @@ class nn_model:
         self.learn_ratio=learn_ratio
         self.with_bias=with_bias
         self.bias=bias
+        self.with_noise=with_noise
+        self.noise_level=0.7
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
-            self.weights[-1]=self.weights[-1]*2-1 #second shape arg is number of columns in matrix - this is source layer
+            self.weights[-1]=self.weights[-1]*2.0-1.0 #second shape arg is number of columns in matrix - this is source layer
             self.change_momentum.append(np.zeros((self.layers[i+1],self.layers[i])))
         for i in range(self.num_of_layers):
             self.actvalues.append(np.zeros(self.layers[i]))
@@ -87,25 +97,29 @@ class nn_model:
         llidx=self.num_of_layers-1
         for l in range(self.num_of_layers-1,0,-1):
             if l==llidx:
-                out_delta=(expected-result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
+                out_delta=2.0*(expected-result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
             else:
-                out_delta=((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l]) #inner and first
-            if len(out_delta)>1:
-                no_change=np.random.randint(len(out_delta))
-                out_delta[no_change]=0.0
+                out_delta=2.0*((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l]) #inner and first
+            if self.with_noise==True:
+                noise=np.random.random(len(out_delta))
+                out_delta+=out_delta*(noise*2-1)*self.noise_level
+            #if len(out_delta)>1:
+                #no_change=np.random.randint(len(out_delta))
+                #out_delta[no_change]=0.0
             dW=np.zeros((self.layers[l],self.layers[l-1]))
             for i in range(self.layers[l]):
                 dW[i]=out_delta[i]*self.actvalues[l-1]*self.learn_ratio #rows in dW matrix equal in size to source layer size.
                 #no_change=np.random.randint(len(dW[i]))
                 #dW[i][no_change]=0
-            self.weights[l-1]+=dW +self.change_momentum_ratio*self.change_momentum[l-1]
-            #prev_out_delta=out_delta
-            if l==llidx:
+            self.change_momentum[l - 1]=(1-self.change_momentum_ratio)*dW +self.change_momentum_ratio*self.change_momentum[l-1]
+            self.weights[l-1]+=self.change_momentum[l-1]
+            prev_out_delta=out_delta
+            """if l==llidx:
                 prev_out_delta=(expected-result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
             else:
-                prev_out_delta=((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l]) #inner and first
+                prev_out_delta=((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l])""" #inner and first
 
-            self.change_momentum[l-1]=dW
+
 
     def evaluate(self,input_user):
         input=self.check_bias_and_normalise(input_user)
@@ -117,20 +131,31 @@ class nn_model:
         return self.output_denormalise(self.actvalues[self.num_of_layers-1])
 
 
-    def fit(self,train_data,epochs=5):
+    def fit(self,train_data,epochs=5,vis=None,test_data=None):
         self.set_data_ranges(train_data)
-        learning_error = np.zeros(epochs * len(train_data))
+        learning_error = np.zeros(epochs)
         input_size=self.layers[0]-int(self.with_bias)
         output_size=self.layers[-1]
         data_size=len(train_data[0])
+        data_length=len(train_data)
         input = np.zeros(input_size)
         expected = np.zeros(output_size)
-        for i in range(epochs * len(train_data)):
-            k = np.random.randint(len(train_data))
+        np.random.shuffle(train_data)
+        epoch_error=0.0
+        for i in range(epochs * data_length):
+            k = i%data_length
             input = train_data[k][0:input_size]
             result = self.evaluate(input)
             expected = train_data[k][(data_size-output_size):data_size]
             self.backprop(input, result, expected)
-            learning_error[i] = np.linalg.norm(result - expected)
+            epoch_error+=np.linalg.norm(expected-result)**2
+            if i%data_length==data_length-1:
+                learning_error[int(i/data_length)] = epoch_error/data_length
+                epoch_error=0.0
+
+                if vis!=None:
+                    vis.add_drawing(self,learning_error,train_data,test_data)
+
+
         return learning_error
 
