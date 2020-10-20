@@ -14,27 +14,26 @@ from nn_model import *
 input_size=1
 output_size=1
 path='projekt1/regression/'
-train_f_name=regr_train_files[6]
-test_f_name=regr_test_files[6]
+train_f_name=regr_train_files[1]
+test_f_name=regr_test_files[1]
 np.random.seed(1974)
 train_data=csv_data_read(path+train_f_name)
 test_data=csv_data_read(path+test_f_name)
 
-input_range=(min(train_data.T[0])-0.2*(max(train_data.T[0])-min(train_data.T[0])),
-             max(train_data.T[0])+0.2*(max(train_data.T[0])-min(train_data.T[0])))
-output_range=(min(train_data.T[1])-0.2*(max(train_data.T[1])-min(train_data.T[1])),
-             max(train_data.T[1])+0.2*(max(train_data.T[1])-min(train_data.T[1])))
+
 #ładny do cube:
-#m1=nn_model([1,3,4,3,1],input_range=input_range,output_range=output_range,with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
+#m1=nn_model([1,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
 #            learn_ratio=0.6)
-#m1=nn_model([1,4,4,1],input_range=input_range,output_range=output_range,with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
+m1=nn_model([1,3,4,3,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
+            learn_ratio=0.6)
+#m1=nn_model([1,4,4,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
 #            learn_ratio=0.6)
-#m1=nn_model([1,2,3,2,1],input_range=input_range,output_range=output_range,with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
+#m1=nn_model([1,2,3,2,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
 #            learn_ratio=0.6)
 #też dobry do cube:
-m1=nn_model([1,4,6,4,1],input_range=input_range,output_range=output_range,with_bias=True,
-            learn_ratio=0.2,bias=1)
-#m1=nn_model([1,3,4,3,1],input_range=input_range,output_range=output_range,with_bias=True,
+#m1=nn_model([1,4,6,4,1],with_bias=True,
+#            learn_ratio=0.2,bias=1)
+#m1=nn_model([1,3,4,3,1],with_bias=True,
 #            learn_ratio=0.2,bias=0.5)
 #epochs=max(1,int(60000/len(train_data)))
 epochs=5

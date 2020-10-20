@@ -51,6 +51,16 @@ class nn_model:
         for i in range(self.num_of_layers):
             self.actvalues.append(np.zeros(self.layers[i]))
             self.v_values.append(np.zeros(self.layers[i]))
+    def set_data_ranges(self,train_data):
+        input_size = self.layers[0] - int(self.with_bias)
+        output_size = self.layers[-1]
+        data_size=len(train_data[0])
+        inp=train_data.T[0:input_size].flatten()
+        outp=train_data.T[(data_size-output_size):data_size].flatten()
+        self.input_range = (min(inp) - 0.2 * (max(inp) - min(inp)),
+                       max(inp) + 0.2 * (max(inp) - min(inp)))
+        self.output_range = (min(outp) - 0.2 * (max(outp) - min(outp)),
+                        max(outp) + 0.2 * (max(outp) - min(outp)))
 
     def check_bias_and_normalise(self,input_user):
         input_user = (input_user - self.input_range[0]) / (self.input_range[1] - self.input_range[0])
@@ -108,6 +118,7 @@ class nn_model:
 
 
     def fit(self,train_data,epochs=5):
+        self.set_data_ranges(train_data)
         learning_error = np.zeros(epochs * len(train_data))
         input_size=self.layers[0]-int(self.with_bias)
         output_size=self.layers[-1]
