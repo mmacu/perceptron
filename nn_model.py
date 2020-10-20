@@ -13,7 +13,7 @@ def Sigm2(x:np.float64):
     return (2.0/(1.0+np.exp(-x)))-1.0
 
 def Sigmprim(x:np.float64):
-    return x*(1.0-x)
+    return np.float64(x*(1.0-x))
 
 def Sigmprim2(x:np.float64):
     if (x<1 and x>-1):
@@ -23,7 +23,7 @@ def Sigmprim2(x:np.float64):
 
 class nn_model:
     def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.1,
-                 with_bias=True,bias=1.0):
+                 with_bias=True,bias=0.5):
 
 
         self.num_of_layers=len(layersizes)
