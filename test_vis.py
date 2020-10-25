@@ -14,8 +14,8 @@ from nn_model import *
 input_size=1
 output_size=1
 path='projekt1/regression/'
-train_f_name=regr_train_files[5]
-test_f_name=regr_test_files[5]
+train_f_name=regr_train_files[4]
+test_f_name=regr_test_files[4]
 np.random.seed(3423)
 train_data=csv_data_read(path+train_f_name)
 test_data=csv_data_read(path+test_f_name)
