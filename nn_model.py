@@ -1,15 +1,15 @@
 import numpy as np
 
 from nn_visualisation import Visualization
-def RelU(x:np.float64):
+def ReLU(x:np.float64):
     return np.float64(max(0,x))
 
-def RelUprim(x:np.float64):
+def ReLUprim(x:np.float64):
     if x>0:
         return 1.0
     else:
         return 0.01
-    
+
 
 def ReLU0(x:np.float64):
     y=np.float64(min(max(-1.0,x),1.0))
@@ -43,16 +43,16 @@ def quadr_err(expected,result):
 def linear_err(expected,result):
 #data is normalized, so we assume 0 if less than 1%
     if expected - result > 0.01:
-        return 1
+        return 1.0
     else:
         if expected - result < -0.01:
-            return -1
+            return -1.0
         else:
-            return 0
+            return 0.0
 
 class nn_model:
     def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.5,
-                 with_bias=True,bias=0.5,with_noise=True,err_m=quadr_err):
+                 with_bias=True,bias=0.5,with_noise=True,noise_level=0.2,err_m=quadr_err,classifier=False,theta=0.5):
 
 
         self.num_of_layers=len(layersizes)
@@ -73,7 +73,10 @@ class nn_model:
         self.with_bias=with_bias
         self.bias=bias
         self.with_noise=with_noise
-        self.noise_level=0.7
+        self.noise_level=noise_level
+        self.classifier=classifier
+        self.theta=theta
+        self.theta_hist=0.1
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
@@ -84,13 +87,19 @@ class nn_model:
             self.v_values.append(np.zeros(self.layers[i]))
     def set_data_ranges(self,train_data):
         input_size = self.layers[0] - int(self.with_bias)
-        output_size = self.layers[-1]
+        if self.classifier:
+            output_size = 1
+        else:
+            output_size = self.layers[-1]
         data_size=len(train_data[0])
         inp=train_data.T[0:input_size].flatten()
         outp=train_data.T[(data_size-output_size):data_size].flatten()
         self.input_range = (min(inp) - 0.2 * (max(inp) - min(inp)),
                        max(inp) + 0.2 * (max(inp) - min(inp)))
-        self.output_range = (min(outp) - 0.2 * (max(outp) - min(outp)),
+        if self.classifier:
+            self.output_range=(0,1)
+        else:
+            self.output_range = (min(outp) - 0.2 * (max(outp) - min(outp)),
                         max(outp) + 0.2 * (max(outp) - min(outp)))
 
     def check_bias_and_normalise(self,input_user):
@@ -103,19 +112,43 @@ class nn_model:
         else:
             return input_user
     def output_normalise(self,output):
-        return (output - self.output_range[0]) / (self.output_range[1] - self.output_range[0])
+        if self.classifier:
+            cl_output=np.zeros(self.layers[-1])
+            cl_output[int(output)-1]=1.0
+            return cl_output
+        else:
+            return (output - self.output_range[0]) / (self.output_range[1] - self.output_range[0])
 
     def output_denormalise(self,output):
-        return output*(self.output_range[1]-self.output_range[0])+self.output_range[0]
-    def backprop(self,input_user,result,expected):
+        if self.classifier:
+            b_values = np.array(output > self.theta, dtype=np.float64)
+            if sum(b_values) == 0 or sum(b_values) > 1:
+                return np.NaN
+            else:
+                return np.array([np.argmax(output)+1],dtype=np.float64)
+        else:
+            return output*(self.output_range[1]-self.output_range[0])+self.output_range[0]
+    def backprop(self,input_user,result_i,expected_i):
         #backprop should be called after evaluation has been performed.
-        #last layer is somewhat different that hidden ones
+        #all activation values at neurons are up to date then
+
 
         input=self.check_bias_and_normalise(input_user)
-        result=self.output_normalise(result)
-        expected=self.output_normalise(expected)
+        #in case of classifier we always attract to zero or on
+        result=np.array(self.actvalues[-1])
+        expected=self.output_normalise(expected_i)
+
+        #in case of classifier do not repair those ok
+        if self.classifier:
+            for i in range(len(result)):
+                if expected[i]==1 and result[i]>self.theta+self.theta_hist:
+                    result[i]=1.0
+                else:
+                    if expected[i]==0 and result[i]<self.theta-self.theta_hist:
+                        result[i]=0.0
 
         llidx=self.num_of_layers-1
+        # last layer is somewhat different that hidden ones
         for l in range(self.num_of_layers-1,0,-1):
             if l==llidx:
                 out_delta=2.0*self.err_m(expected,result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
@@ -140,21 +173,31 @@ class nn_model:
             else:
                 prev_out_delta=((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l])""" #inner and first
 
-    def evaluate(self,input_user):
+    def evaluate(self,input_user,dirty_output=False):
         input=self.check_bias_and_normalise(input_user)
         self.actvalues[0]=input
         for l in range(1,self.num_of_layers):
             self.v_values[l]=self.weights[l-1].dot(self.actvalues[l-1])
             self.actvalues[l]=self.act_f(self.v_values[l])
 
-        return self.output_denormalise(self.actvalues[self.num_of_layers-1])
+
+
+
+
+        if dirty_output:
+            return self.actvalues[-1]
+        else:
+            return self.output_denormalise(self.actvalues[self.num_of_layers-1])
 
 
     def fit(self,train_data,epochs=5,vis=None,test_data=None):
         self.set_data_ranges(train_data)
         learning_error = np.zeros(epochs)
         input_size=self.layers[0]-int(self.with_bias)
-        output_size=self.layers[-1]
+        if self.classifier:
+            output_size=1
+        else:
+            output_size=self.layers[-1]
         data_size=len(train_data[0])
         data_length=len(train_data)
         input = np.zeros(input_size)
@@ -167,7 +210,10 @@ class nn_model:
             result = self.evaluate(input)
             expected = train_data[k][(data_size-output_size):data_size]
             self.backprop(input, result, expected)
-            epoch_error+=np.linalg.norm(expected-result)**2
+            if self.classifier:
+                epoch_error+=int(expected!=result)
+            else:
+                epoch_error+=np.linalg.norm(expected-result)**2
             if i%data_length==data_length-1:
                 learning_error[int(i/data_length)] = epoch_error/data_length
                 epoch_error=0.0

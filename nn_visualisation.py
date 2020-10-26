@@ -38,7 +38,8 @@ class Visualization:
                         edge_values_dw.append(self.model.change_momentum[i-1][j,p_j])
                 k += 1
 
-        plt.subplot(221)
+        plt.subplot(321)
+        plt.subplots_adjust(wspace=0.2,hspace=0.5)
         pos = nx.get_node_attributes(G, 'pos')
         norm_n=matplotlib.colors.Normalize(vmin=0.2,vmax=.8)
         cmap_n=plt.get_cmap('rainbow')
@@ -60,7 +61,7 @@ class Visualization:
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         plt.colorbar(sm)
-        plt.subplot(222)
+        plt.subplot(322)
         norm_n=matplotlib.colors.Normalize(vmin=0.2,vmax=.8)
         cmap_n=plt.get_cmap('rainbow')
         nx.draw_networkx_nodes(G, pos,
@@ -93,10 +94,12 @@ class Visualization:
                                    width=4, alpha=0.5, edge_color=self.colors[i % len(self.colors)])
             i += 1
         nx.draw(G, pos, with_labels=True, node_size=2, font_size=10, width=1.2)"""
-        plt.subplot(223)
+        plt.subplot(326)
         plt.plot(learning_error)
         plt.title("Learning process")
-        plt.subplot(224)
+
+        plt.subplot(324)
+
         input_size = m1.layers[0] - int(m1.with_bias)
         output_size = m1.layers[-1]
         di = np.zeros(input_size)
@@ -105,23 +108,45 @@ class Visualization:
             for i in range(len(test_data)):
 
 
-                di[0] = test_data[i][0]
+                di = test_data[i][0:(m1.layers[0]-int(m1.with_bias))]
                 results[i] = m1.evaluate(di)
-            plt.scatter(test_data.T[0], results, marker='.', label='Regression')
-            plt.scatter(test_data.T[0], test_data.T[1], marker='.', label='Test data')
+            if m1.classifier:
+                norm_cl = matplotlib.colors.Normalize(vmin=min(results), vmax=max(results))
+                cmap_cl = plt.get_cmap('viridis')
+                plt.title('Result')
+                plt.scatter(test_data.T[0], test_data.T[1],marker='.',c=results,cmap=cmap_cl)
+
+                plt.subplot(323)
+
+                plt.scatter(test_data.T[0],test_data.T[1],marker='.',c=test_data.T[2],cmap=cmap_cl)
+            else:
+                plt.scatter(test_data.T[0], results, marker='.', label='Regression')
+                plt.scatter(test_data.T[0], test_data.T[1], marker='.', label='Test data')
         else:
             results = np.zeros(len(train_data))
             for i in range(len(train_data)):
 
 
-                di[0] = train_data[i][0]
+                di = train_data[i][0:(m1.layers[0]-int(m1.with_bias))]
                 results[i] = m1.evaluate(di)
-            plt.scatter(train_data.T[0], results, marker='.', label='Regression')
+            if m1.classifier:
+                norm_cl = matplotlib.colors.Normalize(vmin=min(train_data.T[2]), vmax=max(train_data.T[2]))
+                cmap_cl = plt.get_cmap('viridis')
+                plt.title('Result')
+                plt.scatter(train_data.T[0], train_data.T[1], marker='.', c=results, cmap=cmap_cl)
+                plt.subplot(323)
+                plt.title('Test/Train Data')
+                plt.scatter(train_data.T[0], train_data.T[1], marker='.', c=train_data.T[2], cmap=cmap_cl)
 
+            else:
+                plt.scatter(train_data.T[0], results, marker='.', label='Regression')
 
+        if m1.classifier:
 
-        plt.scatter(train_data.T[0], train_data.T[1], marker='.', label='Train data')
-        plt.legend()
+            pass
+        else:
+            plt.scatter(train_data.T[0], train_data.T[1], marker='.', label='Train data')
+            plt.legend()
         plt.suptitle('NN graph')
         """plt.subplots_adjust(bottom=0.1)
         fig,ax=plt.subplots()
