@@ -21,6 +21,7 @@ class Visualization:
         k=0
         edges=[]
         edge_values=[]
+        edge_values_dw=[]
         n_actvalues=[]
         k0=0 # first neuron number in the layer
         for i in range(self.model.num_of_layers):
@@ -34,6 +35,7 @@ class Visualization:
                     for p_j in range(self.model.layers[i-1]):
                         edges.append([k0-self.model.layers[i-1]+p_j,k])
                         edge_values.append(self.model.weights[i-1][j,p_j])
+                        edge_values_dw.append(self.model.change_momentum[i-1][j,p_j])
                 k += 1
 
         plt.subplot(221)
@@ -48,7 +50,7 @@ class Visualization:
                                alpha=0.8)
         sm_n = plt.cm.ScalarMappable(cmap=cmap_n, norm=norm_n)
         sm_n.set_array([])
-        plt.colorbar(sm_n)
+        #plt.colorbar(sm_n)
         norm = matplotlib.colors.Normalize(vmin=min(edge_values), vmax=max(edge_values))
         cmap=plt.get_cmap('viridis')
         nx.draw_networkx_edges(G, pos,
@@ -58,8 +60,25 @@ class Visualization:
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         plt.colorbar(sm)
+        plt.subplot(222)
+        norm_n=matplotlib.colors.Normalize(vmin=0.2,vmax=.8)
+        cmap_n=plt.get_cmap('rainbow')
+        nx.draw_networkx_nodes(G, pos,
+                               nodelist=range(k),
+                               node_color=n_actvalues,
+                               node_cmap=cmap_n,
+                               node_size=10,
+                               alpha=0.8)
 
-
+        norm_dw = matplotlib.colors.Normalize(vmin=min(edge_values_dw), vmax=max(edge_values_dw))
+        cmap_dw=plt.get_cmap('viridis')
+        nx.draw_networkx_edges(G, pos,
+                               edgelist=edges,
+                               width=2, alpha=0.8, edge_color=edge_values_dw,
+                               edge_cmap=cmap_dw)
+        sm_dw = plt.cm.ScalarMappable(cmap=cmap_dw, norm=norm_dw)
+        sm_dw.set_array([])
+        plt.colorbar(sm_dw)
         """       i = 0
         for layer in self.model.layers:
             previous_vertex = 0

@@ -14,8 +14,8 @@ from nn_model import *
 input_size=1
 output_size=1
 path='projekt1/regression/'
-train_f_name=regr_train_files[4]
-test_f_name=regr_test_files[4]
+train_f_name=regr_train_files[5]
+test_f_name=regr_test_files[5]
 np.random.seed(3423)
 train_data=csv_data_read(path+train_f_name)
 test_data=csv_data_read(path+test_f_name)
@@ -24,10 +24,10 @@ test_data=csv_data_read(path+test_f_name)
 
 #m1=nn_model([1,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
 #            learn_ratio=0.6)
-m1=nn_model([1,3,3,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
-            learn_ratio=0.05)
-#m1=nn_model([1,4,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
-#            learn_ratio=0.1)
+#m1=nn_model([1,3,3,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
+#            learn_ratio=0.05)
+m1=nn_model([1,4,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
+            learn_ratio=0.005,err_m=linear_err)
 #ładny do cube:
 #m1=nn_model([1,2,3,2,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
 #            learn_ratio=0.6)

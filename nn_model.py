@@ -1,7 +1,15 @@
 import numpy as np
 
 from nn_visualisation import Visualization
+def RelU(x:np.float64):
+    return np.float64(max(0,x))
 
+def RelUprim(x:np.float64):
+    if x>0:
+        return 1.0
+    else:
+        return 0.01
+    
 
 def ReLU0(x:np.float64):
     y=np.float64(min(max(-1.0,x),1.0))
@@ -29,13 +37,26 @@ def Sigmprim2(x:np.float64):
     else:
         return 0.0
 
+def quadr_err(expected,result):
+    return 2*(expected - result)
+
+def linear_err(expected,result):
+#data is normalized, so we assume 0 if less than 1%
+    if expected - result > 0.01:
+        return 1
+    else:
+        if expected - result < -0.01:
+            return -1
+        else:
+            return 0
+
 class nn_model:
     def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.5,
-                 with_bias=True,bias=0.5,with_noise=True):
+                 with_bias=True,bias=0.5,with_noise=True,err_m=quadr_err):
 
 
         self.num_of_layers=len(layersizes)
-
+        self.err_m=err_m
         self.layers=layersizes
         if with_bias:
             self.layers[0]+=1
@@ -97,7 +118,7 @@ class nn_model:
         llidx=self.num_of_layers-1
         for l in range(self.num_of_layers-1,0,-1):
             if l==llidx:
-                out_delta=2.0*(expected-result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
+                out_delta=2.0*self.err_m(expected,result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
             else:
                 out_delta=2.0*((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l]) #inner and first
             if self.with_noise==True:
@@ -118,8 +139,6 @@ class nn_model:
                 prev_out_delta=(expected-result)*self.act_fprim(self.actvalues[l]) #delta vector on last layer
             else:
                 prev_out_delta=((self.weights[l].T.dot(prev_out_delta)))*self.act_fprim(self.actvalues[l])""" #inner and first
-
-
 
     def evaluate(self,input_user):
         input=self.check_bias_and_normalise(input_user)
