@@ -76,7 +76,7 @@ class nn_model:
         self.noise_level=noise_level
         self.classifier=classifier
         self.theta=theta
-        self.theta_hist=0.1
+        self.theta_hist=0.15
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
