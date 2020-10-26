@@ -117,7 +117,7 @@ class Visualization:
                 plt.scatter(test_data.T[0], test_data.T[1],marker='.',c=results,cmap=cmap_cl)
 
                 plt.subplot(323)
-
+                plt.title('Test/Train Data')
                 plt.scatter(test_data.T[0],test_data.T[1],marker='.',c=test_data.T[2],cmap=cmap_cl)
             else:
                 plt.scatter(test_data.T[0], results, marker='.', label='Regression')

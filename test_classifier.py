@@ -26,7 +26,7 @@ test_data=csv_data_read(path+test_f_name)
 #            learn_ratio=0.6)
 #m1=nn_model([1,3,3,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
 #            learn_ratio=0.05)
-m1=nn_model([2,6,3],with_bias=True,act_f=ReLU0,act_fprim=ReLU0prim,
+m1=nn_model([2,4,4,3],with_bias=True,act_f=ReLU0,act_fprim=ReLU0prim,
             learn_ratio=0.02,classifier=True,change_m_ratio=0.2)
 #ładny do cube:
 #m1=nn_model([1,2,3,2,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
@@ -43,5 +43,7 @@ vis=Visualization(m1)
 learning_error=m1.fit(train_data,epochs=epochs,vis=vis)
 plt.ioff()
 vis.add_drawing(m1,learning_error,train_data,test_data)
+print('Last mean error over train set: '+str(learning_error[-1]))
+print('Last mean error over test data set: '+str(m1.score(test_data)))
 plt.show()
 

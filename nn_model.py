@@ -122,10 +122,10 @@ class nn_model:
     def output_denormalise(self,output):
         if self.classifier:
             b_values = np.array(output > self.theta, dtype=np.float64)
-            if sum(b_values) == 0 or sum(b_values) > 1:
-                return np.NaN
-            else:
-                return np.array([np.argmax(output)+1],dtype=np.float64)
+            #if sum(b_values) == 0 or sum(b_values) > 1:
+                #return np.NaN
+            #else:
+            return np.array([np.argmax(output)+1],dtype=np.float64)
         else:
             return output*(self.output_range[1]-self.output_range[0])+self.output_range[0]
     def backprop(self,input_user,result_i,expected_i):
@@ -224,3 +224,34 @@ class nn_model:
 
         return learning_error
 
+    def score(self,test_data):
+
+        input_size=self.layers[0]-int(self.with_bias)
+        if self.classifier:
+            output_size=1
+        else:
+            output_size=self.layers[-1]
+        data_size=len(test_data[0])
+        data_length=len(test_data)
+        input = np.zeros(input_size)
+        expected = np.zeros(output_size)
+        #np.random.shuffle(train_data)
+        epoch_error=0.0
+        for i in range(data_length):
+
+            input = test_data[i][0:input_size]
+            result = self.evaluate(input)
+            expected = test_data[i][(data_size-output_size):data_size]
+
+            if self.classifier:
+                epoch_error+=int(expected!=result)
+            else:
+                epoch_error+=np.linalg.norm(expected-result)**2
+
+        epoch_error = epoch_error/data_length
+
+
+
+
+
+        return epoch_error
