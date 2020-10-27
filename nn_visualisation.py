@@ -147,7 +147,7 @@ class Visualization:
         else:
             plt.scatter(train_data.T[0], train_data.T[1], marker='.', label='Train data')
             plt.legend()
-        plt.suptitle('NN graph')
+        #plt.suptitle('NN graph')
         """plt.subplots_adjust(bottom=0.1)
         fig,ax=plt.subplots()
         axinp=plt.axes([0.25, 0.1, 0.65, 0.03], facecolor='red')

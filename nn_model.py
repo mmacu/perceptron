@@ -1,3 +1,5 @@
+from collections import Iterable
+
 import numpy as np
 
 from nn_visualisation import Visualization
@@ -9,7 +11,7 @@ def ReLUprim(x:np.float64):
         return 1.0
     else:
         return 0.01
-
+#słabo działa
 def x3(x:np.float64):
     y = np.float64(min(max(-1.0, x**3), 1.0))
     return x**3
@@ -51,13 +53,28 @@ def quadr_err(expected,result):
 
 def linear_err(expected,result):
 #data is normalized, so we assume 0 if less than 1%
-    if expected - result > 0.01:
-        return 1.0
+
+    if isinstance(result,Iterable):
+        k=np.array(result)
+        for i in range(len(k)):
+
+            if expected[i] - result[i] > 0.01:
+                k[i]=1
+            else:
+                if expected[i] - result[i] < -0.01:
+                    k[i]=-1
+                else:
+                    k[i]=0
+        return k
     else:
-        if expected - result < -0.01:
-            return -1.0
+        if expected - result > 0.01:
+            k = 1
         else:
-            return 0.0
+            if expected - result < -0.01:
+                k = -1
+            else:
+                k = 0
+        return k
 
 class nn_model:
     def __init__(self,layersizes,input_range=(-1,1),output_range=(-1,1),act_f=ReLU0,act_fprim=ReLU0prim,learn_ratio=0.1,change_m_ratio=0.5,
@@ -85,7 +102,7 @@ class nn_model:
         self.noise_level=noise_level
         self.classifier=classifier
         self.theta=theta
-        self.theta_hist=0.01
+        self.theta_hist=0.0
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
@@ -148,13 +165,11 @@ class nn_model:
         expected=self.output_normalise(expected_i)
 
         #in case of classifier do not repair those ok
+        #let's try this softmax version
+
         if self.classifier:
-            for i in range(len(result)):
-                if expected[i]==1 and result[i]>self.theta+self.theta_hist:
-                    result[i]=1.0
-                else:
-                    if expected[i]==0 and result[i]<self.theta-self.theta_hist:
-                        result[i]=0.0
+            result=np.exp(result)/sum(np.exp(result))
+
 
         llidx=self.num_of_layers-1
         # last layer is somewhat different that hidden ones

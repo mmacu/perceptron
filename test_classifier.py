@@ -1,10 +1,10 @@
 
 
-from data_reader import csv_data_read, class_train_files, class_test_files
+from data_reader import csv_data_read, class_train_files, class_test_files, pres_class_train, pres_class_test
 from nn_visualisation import *
 
 from nn_model import *
-
+from data_reader import read_train_mnist
 
 
 
@@ -14,30 +14,24 @@ from nn_model import *
 input_size=1
 output_size=1
 path='projekt1/classification/'
-train_f_name=class_train_files[1]
-test_f_name=class_test_files[1]
+path1='projekt1-oddanie/clasification/'
+
+#train_f_name=path+class_train_files[5]
+#test_f_name=path+class_test_files[5]
+#pliki na oddaniu:
+train_f_name=path1+pres_class_train[5]
+test_f_name=path1+pres_class_test[5]
 np.random.seed(323)
-train_data=csv_data_read(path+train_f_name)
-test_data=csv_data_read(path+test_f_name)
+train_data=csv_data_read(train_f_name)
+test_data=csv_data_read(test_f_name)
 
 
 
-#m1=nn_model([1,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
-#            learn_ratio=0.6)
-#m1=nn_model([1,3,3,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
-#            learn_ratio=0.05)
-m1=nn_model([2,10,2],with_bias=True,act_f=ReLU0,act_fprim=ReLU0prim,
-            learn_ratio=0.001,noise_level=0.2,classifier=True,change_m_ratio=0.90)
-#ładny do cube:
-#m1=nn_model([1,2,3,2,1],with_bias=True,act_f=Sigm2,act_fprim=Sigmprim2,
-#            learn_ratio=0.6)
-#też dobry do cube
-#m1=nn_model([1,4,4,4,1],with_bias=True,
-#            learn_ratio=0.2,bias=0.5)
-#m1=nn_model([1,4,4,1],with_bias=True,
-#            learn_ratio=0.1,bias=0.5)
 
-#epochs=max(1,int(60000/len(train_data)))
+m1=nn_model([2,75,75,75,4],with_bias=True,act_f=ReLU0,act_fprim=ReLU0prim,
+            learn_ratio=0.001,noise_level=0.1,classifier=True,change_m_ratio=0.90)
+
+
 epochs=50
 vis=Visualization(m1)
 learning_error=m1.fit(train_data,epochs=epochs,vis=vis)
