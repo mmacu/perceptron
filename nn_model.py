@@ -10,6 +10,15 @@ def ReLUprim(x:np.float64):
     else:
         return 0.01
 
+def x3(x:np.float64):
+    y = np.float64(min(max(-1.0, x**3), 1.0))
+    return x**3
+
+def x3prim(x:np.float64):
+    if x > -1.0 and x < 1:
+        return 1
+    else:
+        return 0.01
 
 def ReLU0(x:np.float64):
     y=np.float64(min(max(-1.0,x),1.0))
@@ -76,11 +85,11 @@ class nn_model:
         self.noise_level=noise_level
         self.classifier=classifier
         self.theta=theta
-        self.theta_hist=0.15
+        self.theta_hist=0.01
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
-            self.weights[-1]=self.weights[-1]*2.0-1.0 #second shape arg is number of columns in matrix - this is source layer
+            self.weights[-1]=self.weights[-1]*1.5-0.75 #second shape arg is number of columns in matrix - this is source layer
             self.change_momentum.append(np.zeros((self.layers[i+1],self.layers[i])))
         for i in range(self.num_of_layers):
             self.actvalues.append(np.zeros(self.layers[i]))
