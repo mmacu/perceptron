@@ -115,3 +115,9 @@ def read_train_mnist():
 
     return X,y
 
+def read_test_mnist():
+    X, y = loadlocal_mnist(
+        images_path='/Users/marek/marek_files/priv/mini/perceptron/mnist/t10k-images.idx3-ubyte',
+        labels_path='/Users/marek/marek_files/priv/mini/perceptron/mnist/t10k-labels.idx1-ubyte')
+
+    return X,y

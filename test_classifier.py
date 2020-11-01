@@ -28,8 +28,8 @@ test_data=csv_data_read(test_f_name)
 
 
 
-m1=nn_model([2,75,75,75,4],with_bias=True,act_f=ReLU0,act_fprim=ReLU0prim,
-            learn_ratio=0.001,noise_level=0.1,classifier=True,change_m_ratio=0.90)
+m1=nn_model([2,100,100,100,4],with_bias=True,act_f=ReLU0,act_fprim=ReLU0prim,
+            learn_ratio=0.0005,noise_level=0.1,classifier=True,change_m_ratio=0.90)
 
 
 epochs=50

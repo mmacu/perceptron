@@ -102,11 +102,11 @@ class nn_model:
         self.noise_level=noise_level
         self.classifier=classifier
         self.theta=theta
-        self.theta_hist=0.0
+        self.theta_hist=0.00
         for i in range(self.num_of_layers-1):
             #self.weights.append(np.zeros((self.layers[i+1],self.layers[i]))+0.5)
             self.weights.append(np.random.rand(self.layers[i+1],self.layers[i]))
-            self.weights[-1]=self.weights[-1]*1.5-0.75 #second shape arg is number of columns in matrix - this is source layer
+            self.weights[-1]=self.weights[-1]*0.2-0.1 #second shape arg is number of columns in matrix - this is source layer
             self.change_momentum.append(np.zeros((self.layers[i+1],self.layers[i])))
         for i in range(self.num_of_layers):
             self.actvalues.append(np.zeros(self.layers[i]))
@@ -140,18 +140,18 @@ class nn_model:
     def output_normalise(self,output):
         if self.classifier:
             cl_output=np.zeros(self.layers[-1])
-            cl_output[int(output)-1]=1.0
+            cl_output[int(output)]=1.0
             return cl_output
         else:
             return (output - self.output_range[0]) / (self.output_range[1] - self.output_range[0])
 
     def output_denormalise(self,output):
         if self.classifier:
-            b_values = np.array(output > self.theta, dtype=np.float64)
+            #b_values = np.array(output > self.theta, dtype=np.float64)
             #if sum(b_values) == 0 or sum(b_values) > 1:
                 #return np.NaN
             #else:
-            return np.array([np.argmax(output)+1],dtype=np.float64)
+            return np.array([np.argmax(output)],dtype=np.float64)
         else:
             return output*(self.output_range[1]-self.output_range[0])+self.output_range[0]
     def backprop(self,input_user,result_i,expected_i):
@@ -168,8 +168,13 @@ class nn_model:
         #let's try this softmax version
 
         if self.classifier:
-            result=np.exp(result)/sum(np.exp(result))
-
+            #result=np.exp(result)/sum(np.exp(result))
+            for i in range(len(result)):
+                if expected[i] == 1 and result[i] > self.theta + self.theta_hist:
+                    result[i] = 1.0
+                else:
+                    if expected[i] == 0 and result[i] < self.theta - self.theta_hist:
+                        result[i] = 0.0
 
         llidx=self.num_of_layers-1
         # last layer is somewhat different that hidden ones
@@ -213,8 +218,8 @@ class nn_model:
         else:
             return self.output_denormalise(self.actvalues[self.num_of_layers-1])
 
-
-    def fit(self,train_data,epochs=5,vis=None,test_data=None):
+#if Y is none, last columns of train_data are Y.
+    def fit(self,train_data,Y=None,epochs=5,vis=None):
         self.set_data_ranges(train_data)
         learning_error = np.zeros(epochs)
         input_size=self.layers[0]-int(self.with_bias)
@@ -226,20 +231,39 @@ class nn_model:
         data_length=len(train_data)
         input = np.zeros(input_size)
         expected = np.zeros(output_size)
+        rng_state = np.random.get_state()
+
+
         np.random.shuffle(train_data)
+        if not (Y is None):
+            np.random.set_state(rng_state)
+            np.random.shuffle(Y)
+
         epoch_error=0.0
         for i in range(epochs * data_length):
             k = i%data_length
             input = train_data[k][0:input_size]
             result = self.evaluate(input)
-            expected = train_data[k][(data_size-output_size):data_size]
-            self.backprop(input, result, expected)
+            if Y is None:
+                expected = train_data[k][(data_size-output_size):data_size]
+            else:
+                expected=Y[k]
+
+            #small performance optimization
+            if (not self.classifier) or expected!=result:
+
+                self.backprop(input, result, expected)
             if self.classifier:
                 epoch_error+=int(expected!=result)
             else:
                 epoch_error+=np.linalg.norm(expected-result)**2
+            if i%1000==1:
+                print("Bład w trakcie epoki: "+str(epoch_error/(i%data_length)))
             if i%data_length==data_length-1:
                 learning_error[int(i/data_length)] = epoch_error/data_length
+                print("Błąd: "+str(epoch_error/data_length))
+                if epoch_error==0:
+                    return learning_error
                 epoch_error=0.0
 
                 if vis!=None:
@@ -247,25 +271,31 @@ class nn_model:
 
 
         return learning_error
-
-    def score(self,test_data):
+# if Y is none, then last columns (according to network) are Y
+    def score(self,test_data,Y=None):
 
         input_size=self.layers[0]-int(self.with_bias)
         if self.classifier:
             output_size=1
         else:
             output_size=self.layers[-1]
+
+
         data_size=len(test_data[0])
         data_length=len(test_data)
         input = np.zeros(input_size)
         expected = np.zeros(output_size)
-        #np.random.shuffle(train_data)
+
+
         epoch_error=0.0
         for i in range(data_length):
 
             input = test_data[i][0:input_size]
             result = self.evaluate(input)
-            expected = test_data[i][(data_size-output_size):data_size]
+            if Y is None:
+                expected = test_data[i][(data_size-output_size):data_size]
+            else:
+                expected = Y[i]
 
             if self.classifier:
                 epoch_error+=int(expected!=result)

@@ -4,6 +4,17 @@ import networkx as nx
 import numpy as np
 from matplotlib.widgets import Slider
 
+class SimpleVis:
+    def __init__(self,model):
+        self.model=model
+
+    def add_drawing(self,m1,learning_error,train_data,test_data):
+        plt.clf()
+        plt.plot(learning_error)
+        plt.title("Learning process")
+        plt.draw()  # display
+
+        plt.pause(0.0001)
 
 class Visualization:
 
