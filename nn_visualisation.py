@@ -8,7 +8,7 @@ class SimpleVis:
     def __init__(self,model):
         self.model=model
 
-    def add_drawing(self,m1,learning_error,train_data,test_data):
+    def add_drawing(self,m1,learning_error,train_data,test_data=None):
         plt.clf()
         plt.plot(learning_error)
         plt.title("Learning process")
@@ -26,7 +26,7 @@ class Visualization:
         self.graph_size_y=1000
         plt.ion()
 
-    def add_drawing(self,m1,learning_error,train_data,test_data):
+    def add_drawing(self,m1,learning_error,train_data,test_data=None):
         plt.clf()
         G = nx.Graph()
         k=0

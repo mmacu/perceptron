@@ -267,7 +267,7 @@ class nn_model:
                 epoch_error=0.0
 
                 if vis!=None:
-                    vis.add_drawing(self,learning_error,train_data,test_data)
+                    vis.add_drawing(self,learning_error,train_data)
 
 
         return learning_error
