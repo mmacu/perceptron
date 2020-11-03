@@ -258,7 +258,7 @@ class nn_model:
             else:
                 epoch_error+=np.linalg.norm(expected-result)**2
             if i%1000==1:
-                print("Bład w trakcie epoki: "+str(epoch_error/(i%data_length)))
+                print("Bład w trakcie epoki (narastająco): "+str(epoch_error/(i%data_length)))
             if i%data_length==data_length-1:
                 learning_error[int(i/data_length)] = epoch_error/data_length
                 print("Błąd: "+str(epoch_error/data_length))
